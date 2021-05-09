@@ -84,9 +84,75 @@ dj_f_train_data = fcst_dj %>%
 us_train_data = fcst_us %>% 
   left_join(energy_us, by = c('year', 'month', 'day', 'hour')) 
 
-dj_train_data %>% 
+
+
+
+dj_train_data_1 = dj_train_data %>% 
   filter(hour %in% c('08','09','10','11')) %>% 
   select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin)
+
+dj_train_data_2 = dj_train_data %>% 
+  filter(hour %in% c('12','13','14','15')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin)
+
+dj_train_data_3 = dj_train_data %>% 
+  filter(hour %in% c('16','17','18','19')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin)
+
+
+
+
+
+
+dj_f_train_data_1 = dj_f_train_data %>% 
+  filter(hour %in% c('08','09','10','11')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin_floating)
+
+dj_f_train_data_2 = dj_f_train_data %>% 
+  filter(hour %in% c('12','13','14','15')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin_floating)
+
+dj_f_train_data_3 = dj_f_train_data %>% 
+  filter(hour %in% c('16','17','18','19')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin_floating)
+
+
+
+
+
+
+dj_w_train_data_1 = dj_w_train_data %>% 
+  filter(hour %in% c('08','09','10','11')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin_warehouse)
+
+dj_w_train_data_2 = dj_w_train_data %>% 
+  filter(hour %in% c('12','13','14','15')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin_warehouse)
+
+dj_w_train_data_3 = dj_w_train_data %>% 
+  filter(hour %in% c('16','17','18','19')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, dangjin_warehouse)
+
+
+
+
+
+
+us_train_data_1 = us_train_data %>% 
+  filter(hour %in% c('08','09','10','11')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, ulsan)
+
+us_train_data_2 = us_train_data %>% 
+  filter(hour %in% c('12','13','14','15')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, ulsan)
+
+us_train_data_3 = us_train_data %>% 
+  filter(hour %in% c('16','17','18','19')) %>% 
+  select(Temperature, Humidity, WindSpeed, WindDirection, Cloud, ulsan)
+
+
+
+
 
 
 
