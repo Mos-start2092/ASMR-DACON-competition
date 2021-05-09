@@ -1,0 +1,43 @@
+---
+title: "변수생성"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(ggcorrplot)
+```
+
+
+# 일조량 변수 생성
+
+```{r}
+setwd("G:/내 드라이브/경준/공모전/동서발전/data")
+sunlight1 = read.csv("OBS_ASOS_TIM_1.csv",header=T)
+sunlight2 = read.csv("OBS_ASOS_TIM_2.csv",header=T)
+sunlight3 = read.csv("OBS_ASOS_TIM_3.csv",header=T)
+
+us_sunlight = rbind(sunlight1[,c(3,5)],sunlight2[,c(3,5)],sunlight3[,c(3,5)])
+
+colnames(us_sunlight) = c("key","sunlight")
+us_sunlight$key = paste0(us_sunlight$key, ":00")
+obs_us$key = as.character(obs_us$time)
+obs_us = left_join(obs_us,us_sunlight,by='key') %>% 
+  dplyr::select(branch, time, Temperature, WindSpeed, WindDirection,
+                Humidity, Cloud, sunlight)
+
+us_sunlight$sunlight[which(is.na(us_sunlight$sunlight))] = 0
+```
+
+
+# 풍향 : sin, cos 분해
+
+```{r}
+obs_us$windD_sin = sin((pi/180)*obs_us$WindDirection)
+obs_us$windD_cos = cos((pi/180)*obs_us$WindDirection)
+idx = which(colnames(obs_us) == "WindDirection")
+obs_us = obs_us[,-idx]
+```
+
