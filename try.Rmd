@@ -1,0 +1,143 @@
+---
+title: "try"
+author: "LEE EUN JU"
+date: '2021 5 10 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lubridate)
+library(ggcorrplot)
+library(car)
+library(forecast)
+library(glmnet)
+```
+
+
+```{r}
+read.csv("us_plus.csv")
+which(is.na(us_plus))
+
+us_07 =us_plus[which(us_plus$hour == as.times("07:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_08 =us_plus[which(us_plus$hour == as.times("08:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_09 =us_plus[which(us_plus$hour == as.times("09:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_10 =us_plus[which(us_plus$hour == as.times("10:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_11 =us_plus[which(us_plus$hour == as.times("11:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_12 =us_plus[which(us_plus$hour == as.times("12:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_13 =us_plus[which(us_plus$hour == as.times("13:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_14 =us_plus[which(us_plus$hour == as.times("14:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_15 =us_plus[which(us_plus$hour == as.times("15:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_16 =us_plus[which(us_plus$hour == as.times("16:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_17 =us_plus[which(us_plus$hour == as.times("17:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_18 =us_plus[which(us_plus$hour == as.times("18:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+us_19 =us_plus[which(us_plus$hour == as.times("19:00:00")),c(8,2,3,4,5,6,7,10,11,12)] 
+```
+
+
+
+ scale/log/sqrt ----------------------------------------------------------
+
+```{r}
+us_plus_scale = data.frame(scale(us_plus[,-c(1,8,9,10,12)]), us_plus$rain, us_plus$snow)
+#us_plus_log = data.frame(log(us_plus[,-c(1,8,9,10,12)]), us_plus$rain, us_plus$snow)
+#us_plus_sqrt = data.frame(sqrt(us_plus[,-c(1,8,9,10,12)]), us_plus$rain, us_plus$snow)
+
+colnames(us_plus_scale) = c("Temperature", "WindSpeed", "WindDirection", "Humidity",
+                            "Cloud", "energy","iz", "rain", "snow")
+```
+
+ regression
+```{r}
+us_lm_scale = lm(energy~. ,data=us_plus_scale)
+summary(us_lm_scale)
+plot(us_lm_scale)
+vif(us_lm_scale)
+accuracy(us_lm_scale)
+```
+
+
+```{r}
+us_07_scale = data.frame(
+  Day = us_07$Day, 
+  scale(us_07[,-c(1,8,10)]), 
+  rain = us_07$rain, 
+  snow = us_07$snow)
+us_08_scale = data.frame(Day = us_08$Day, scale(us_08[,-c(1,8,9,10,12)]), rain =us_08$rain,snow = us_08$snow)
+us_09_scale = data.frame(Day = us_08$Day,scale(us_09[,-c(1,8,9,10,12)]), rain =us_09$rain, snow =us_09$snow)
+us_10_scale = data.frame(Day = us_10$Day,scale(us_10[,-c(1,8,9,10,12)]), rain =us_10$rain, snow =us_10$snow)
+us_11_scale = data.frame(Day = us_11$Day,scale(us_11[,-c(1,8,9,10,12)]), rain =us_11$rain, snow =us_11$snow)
+us_12_scale = data.frame(Day = us_12$Day,scale(us_12[,-c(1,8,9,10,12)]), rain =us_12$rain, snow =us_12$snow)
+us_13_scale = data.frame(Day = us_13$Day,scale(us_13[,-c(1,8,9,10,12)]), rain =us_13$rain, snow =us_13$snow)
+us_14_scale = data.frame(Day = us_14$Day,scale(us_14[,-c(1,8,9,10,12)]), rain =us_14$rain, snow =us_14$snow)
+us_15_scale = data.frame(Day = us_15$Day,scale(us_15[,-c(1,8,9,10,12)]), rain =us_15$rain, snow =us_15$snow)
+us_16_scale = data.frame(Day = us_16$Day,scale(us_16[,-c(1,8,9,10,12)]), rain =us_16$rain, snow =us_16$snow)
+us_17_scale = data.frame(Day = us_17$Day,scale(us_17[,-c(1,8,9,10,12)]), rain =us_17$rain, snow =us_17$snow)
+us_18_scale = data.frame(Day = us_18$Day,scale(us_18[,-c(1,8,9,10,12)]), rain =us_18$rain, snow =us_18$snow)
+us_19_scale = data.frame(Day = us_19$Day,scale(us_19[,-c(1,8,9,10,12)]), rain =us_19$rain, snow =us_19$snow)
+```
+
+
+us_07 Regression --------------------------------------------------------
+```{r}
+tail(us_07_scale)
+train_07=us_07_scale %>% filter(Day <= as.Date("2020-12-31"))
+valid_07=us_07_scale %>% filter(Day > as.Date("2020-12-31"))
+
+head(us_07_scale)
+us_07_lm = lm(energy~. ,data=train_07[,-1])
+summary(us_07_lm) #WindDirection, Humidity, snow변수 유의하지 않아 보인다.
+
+#snow변수, rain변수 조정
+train_07[which(train_07$rain == 2 | train_07$rain == 3),"rain"] = 2
+#train_07 = train_07[,-10]
+```
+
+
+```{r}
+##ridge, elastic, lasso regression
+x_07 = cbind( as.matrix(train_07[,2]), as.matrix(train_07[,3]), as.matrix(train_07[,4]),
+                    as.matrix(train_07[,5]), as.matrix(train_07[,6]), as.matrix(train_07[,8]),
+                    as.factor(as.matrix(train_07[,9])), as.factor(as.matrix(train_07[,10])))
+y_07 = as.matrix(train_07[,7])
+
+
+us_07_ridge = cv.glmnet(x_07, y_07, alpha=0) #cv: cross validation
+us_07_elastic = cv.glmnet(x_07, y_07, alpha=0.5)
+us_07_lasso = cv.glmnet(x_07, y_07, alpha=1)
+
+
+#lambda값
+plot(us_07_ridge); log(us_07_ridge$lambda.min); log(us_07_ridge$lambda.1se)
+plot(us_07_elastic); log(us_07_elastic$lambda.min); log(us_07_elastic$lambda.1se)
+plot(us_07_lasso); log(us_07_lasso$lambda.min); log(us_07_lasso$lambda.1se)
+
+
+#선택된 모수
+coef(us_07_ridge,s="lambda.min")
+coef(us_07_ridge,s="lambda.1se") 
+
+coef(us_07_elastic,s="lambda.min") #-snow
+coef(us_07_elastic,s="lambda.1se") #-windirection,-humidity,-snow
+
+coef(us_07_lasso,s="lambda.min") #-snow
+coef(us_07_lasso,s="lambda.1se") #-windirection,-humidity,-snow
+```
+
+
+predict - 모형평가
+```{r}
+library(DMwR)
+pr_valid_07 = cbind( as.matrix(valid_07[,2]), as.matrix(valid_07[,3]), as.matrix(valid_07[,4]),
+                as.matrix(valid_07[,5]), as.matrix(valid_07[,6]), as.matrix(valid_07[,8]),
+                as.factor(as.matrix(valid_07[,9])), as.factor(as.matrix(valid_07[,10])))
+yobs = as.matrix(valid_07[,7])
+
+yhat_lasso = predict(us_07_lasso, s="lambda.1se", newx=pr_valid_07, type="response")
+yhat_elastic = predict(us_07_elastic, s="lambda.1se", newx=pr_valid_07, type="response")
+regr.eval(yobs,yhat_lasso) #굉장히 모형이 좋음
+regr.eval(yobs,yhat_elastic)
+```
+
+
