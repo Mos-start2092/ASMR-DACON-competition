@@ -1,0 +1,170 @@
+---
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# simple linear regression
+
+```{r}
+mod1 = lm(energy~Temperature+Humidity+Cloud,hour8)
+summary(mod1)
+hour8_s = data.frame(scale(hour8[,-c(1,10)],scale=T))
+mod1_s = lm(energy~Temperature+Humidity+Cloud,hour8_s)
+summary(mod1_s)
+
+mod2 = lm(energy~Temperature+Humidity+Cloud,hour13)
+summary(mod2)
+hour13_s = data.frame(scale(hour13[,-c(1,10)],scale=T))
+mod2_s = lm(energy~Temperature+Humidity+Cloud,hour13_s)
+summary(mod2_s)
+
+mod3 = lm(energy~Temperature+Humidity+Cloud,hour19)
+summary(mod3)
+hour19_s = data.frame(scale(hour19[,-c(1,10)],scale=T))
+mod3_s = lm(energy~Temperature+Humidity+Cloud,hour19_s)
+summary(mod3_s)
+```
+
+# Autocorrelation test
+
+```{r}
+checkresiduals(mod1)
+checkresiduals(mod1_s)
+checkresiduals(mod2)
+checkresiduals(mod2_s)
+```
+
+- time series 패턴 가짐
+- ACF 기준치 완전히 넘음
+
+
+# shuffle
+
+```{r}
+idx = sample(1:nrow(hour8),nrow(hour8),replace=F)
+hour8_r = hour8[idx,]
+idx = sample(1:nrow(hour8_s),nrow(hour8_s),replace=F)
+hour8_sr = hour8_s[idx,]
+idx = sample(1:nrow(hour13),nrow(hour13),replace=F)
+hour13_r = hour13[idx,]
+idx = sample(1:nrow(hour13_s),nrow(hour13_s),replace=F)
+hour13_sr = hour13_s[idx,]
+```
+
+
+# simple linear regression(shuffled data)
+
+```{r}
+mod1_r = lm(energy~Temperature+Humidity+Cloud,hour8_r)
+summary(mod1_r)
+hour8_sr = data.frame(scale(hour8_r[,-c(1,10)],scale=T))
+mod1_sr = lm(energy~Temperature+Humidity+Cloud,hour8_sr)
+summary(mod1_sr)
+
+mod2_r = lm(energy~Temperature+Humidity+Cloud,hour13_r)
+summary(mod2_r)
+hour13_sr = data.frame(scale(hour13_r[,-c(1,10)],scale=T))
+mod2_sr = lm(energy~Temperature+Humidity+Cloud,hour13_sr)
+summary(mod2_sr)
+```
+
+
+# autocorrelation test
+
+```{r}
+checkresiduals(mod1_r)
+checkresiduals(mod1_sr)
+checkresiduals(mod2_r)
+checkresiduals(mod2_sr   )
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

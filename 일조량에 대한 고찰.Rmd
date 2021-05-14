@@ -1,0 +1,190 @@
+---
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# 패턴의 유사성
+
+1. Temperature vs energy
+
+```{r}
+us %>% 
+    filter(year == 2018, hour %in% 8:17) %>% 
+    ggplot(aes(Temperature,energy,group=hour,colour=hour)) + 
+    geom_smooth(se = F)
+
+us %>% 
+    filter(year == 2018, hour == 8) %>% 
+    ggplot(aes(Temperature,sunlight,group=hour,colour=hour)) + 
+    geom_point()
+```
+
+
+
+2. Temperature vs sunlight
+
+```{r}
+us %>% 
+    filter(year == 2018, hour %in% 8:17) %>% 
+    ggplot(aes(Temperature,sunlight,group=hour,colour=hour)) + 
+    geom_smooth(se = F)
+
+us %>% 
+    filter(year == 2018, hour == 8) %>% 
+    ggplot(aes(Temperature,sunlight,group=hour,colour=hour)) + 
+    geom_point()
+```
+
+- 패턴의 유사성은 아침시간대의 온도의 차이에 따라 계절의 차이가 발생했고, 그로 인해 일조 시간이 바뀌었다는 생각
+- 아침 시간대에 특정 온도에서(아침시간대 여름 계절 일조 차이나는 시간대의 온도) 일조량 효과가 추가적으로 작용
+    단순히 온도에 포함된 계절 작용으로 설명하기 힘듬
+
+3. 8시 sunlight time series
+
+```{r}
+us %>% 
+    filter(year==2018,hour==8) %>% 
+    ggplot(aes(time,sunlight)) +
+    geom_point()
+us %>% 
+    filter(year==2019,hour==8) %>% 
+    ggplot(aes(time,sunlight)) +
+    geom_point()
+us %>% 
+    filter(year==2020,hour==8) %>% 
+    ggplot(aes(time,sunlight)) +
+    geom_point()
+
+
+us %>% 
+    filter(hour==8) %>% 
+    ggplot(aes(time,sunlight)) +
+    geom_point()
+```
+
+- sunlight 패턴 파악
+
+4. 
+
+```{r}
+us %>% 
+    filter(year == 2018, hour == 8) %>% 
+    ggplot(aes(Temperature,sunlight,group=hour,colour=hour)) + 
+    geom_point()
+us %>% 
+    filter(year == 2019, hour == 8) %>% 
+    ggplot(aes(Temperature,sunlight,group=hour,colour=hour)) + 
+    geom_point()
+us %>% 
+    filter(year == 2020, hour == 8) %>% 
+    ggplot(aes(Temperature,sunlight,group=hour,colour=hour)) + 
+    geom_point()
+
+us %>% 
+    filter(hour==8, Temperature<0) %>% 
+    dplyr::select(time)
+
+
+us %>% 
+    filter(hour==8, Temperature>0, sunlight==0) %>% 
+    dplyr::select(Temperature, WindSpeed, Humidity, Cloud)
+```
+
+- 영하권에서 일조량이 0으로 덜 떨어진다
+
+5. 패턴 찾기
+
+```{r}
+us %>% 
+    filter(hour==8, Temperature>0, sunlight!=0) %>% 
+    ggplot(aes(time,WindSpeed)) + 
+    geom_point()
+us %>% 
+    filter(hour==8, Temperature>0, sunlight!=0) %>% 
+    ggplot(aes(time,Humidity)) + 
+    geom_point()
+us %>% 
+    filter(hour==8, Temperature>0, sunlight!=0) %>% 
+    ggplot(aes(time,Cloud)) + 
+    geom_point()
+
+
+us %>% 
+    filter(hour==8, Temperature>0, sunlight==0) %>% 
+    ggplot(aes(time,WindSpeed)) + 
+    geom_point()
+us %>% 
+    filter(hour==8, Temperature>0, sunlight==0) %>% 
+    ggplot(aes(time,Humidity)) + 
+    geom_point()
+us %>% 
+    filter(hour==8, Temperature>0, sunlight==0) %>% 
+    ggplot(aes(time,Cloud)) + 
+    geom_point()
+```
+
+- sunlight 0인 지점과 아닌 지점 비교
+- Humidity 어느정도 상관이 있고, Cloud는 아주 선명함함
+
+
+
+```{r}
+us %>% 
+    filter(hour==8, Temperature<0) %>% 
+    ggplot(aes(time,WindSpeed,colour=(sunlight==0))) + 
+    geom_point()
+us %>% 
+    filter(hour==8, Temperature<0) %>% 
+    ggplot(aes(time,Humidity,colour=(sunlight==0))) + 
+    geom_point()
+us %>% 
+    filter(hour==8, Temperature<0) %>% 
+    ggplot(aes(time,Cloud,colour=(sunlight==0))) + 
+    geom_point()
+```
+
+- Humidity, WindSpeed에서는 영하권에서 sunlight 0 인 data와 아닌 data 섞여있음
+- Cloud에서는 sunlight 0인 data가 Cloud값이 높은 편
+- 영하권에서 sunlight 0이 잘 안 나오는 이유도 Cloud의 영향으로 판단할 수 있을 듯
+
+
+```{r}
+us %>% 
+    filter(year==2018, hour==8) %>% 
+    ggplot(aes(Temperature,sunlight)) + 
+    geom_point()
+
+
+us %>% 
+    filter(year==2018, hour==8) %>% 
+    ggplot(aes(Temperature,Cloud)) + 
+    geom_smooth(se=F)
+us %>% 
+    filter(year==2019, hour==8) %>% 
+    ggplot(aes(Temperature,Cloud)) + 
+    geom_smooth(se=F)
+us %>% 
+    filter(year==2020, hour==8) %>% 
+    ggplot(aes(Temperature,Cloud)) + 
+    geom_smooth(se=F)
+
+
+
+us %>% 
+    filter(year==2018, hour==8) %>% 
+    ggplot(aes(Temperature,sunlight)) + 
+    geom_smooth(se=F)
+us %>% 
+    filter(year==2019, hour==8) %>% 
+    ggplot(aes(Temperature,sunlight)) + 
+    geom_smooth(se=F)
+us %>% 
+    filter(year==2020, hour==8) %>% 
+    ggplot(aes(Temperature,sunlight)) + 
+    geom_smooth(se=F)
+```
+
+- temperature에 따른 plot 도 어느정도 패턴 맞춰가는 듯 함
