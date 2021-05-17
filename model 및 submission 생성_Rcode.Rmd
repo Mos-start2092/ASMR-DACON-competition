@@ -1,0 +1,492 @@
+---
+title: "Model_Fitting & Submission"
+author: "John_James"
+date: '2021 5 16 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(nlme)
+library(tidyverse)
+library(lubridate)
+library(plyr)
+library(randomForest)
+```
+
+# Data Reading
+
+```{r}
+setwd("C:/Users/강경준/Documents")
+train_us = read.csv("train_month_us.csv")
+train_or = read.csv("train_month_dj_or.csv")
+train_wh = read.csv("train_month_dj_wh.csv")
+train_ft = read.csv("train_month_dj_ft.csv")
+test_us = read.csv("test_us.csv")
+test_dj = read.csv("test_dj.csv")
+```
+
+
+# Data Slicing
+
+## Ulsan
+
+```{r}
+train_us$Cloud = train_us$Cloud_1.0 +
+    2*train_us$Cloud_2.0 + 3*train_us$Cloud_3.0 + 
+    4*train_us$Cloud_4.0
+train_us$month = month(ymd_hms(
+    train_us$Forecast_time, tz="Asia/Seoul"))
+
+test_us$Cloud = test_us$Cloud_1.0 +
+    2*test_us$Cloud_2.0 + 3*test_us$Cloud_3.0 + 
+    4*test_us$Cloud_4.0
+test_us$month = month(ymd_hms(
+    test_us$Forecast_time, tz="Asia/Seoul"))
+
+timely_us = list(NA)
+name = rep(NA,11)
+for(i in 8:18){
+    A = test_us %>% filter(hour==i)
+    timely_us[[i-7]] = data.frame(A)
+    name[i-7] = paste0('train_us_hour',i)
+}
+names(timely_us) =name
+```
+
+
+## Dangjin_or
+
+```{r}
+train_or$Cloud = train_or$Cloud_1.0 +
+    2*train_or$Cloud_2.0 + 3*train_or$Cloud_3.0 + 
+    4*train_or$Cloud_4.0
+train_or$month = month(ymd_hms(
+    train_or$Forecast_time, tz="Asia/Seoul"))
+
+test_or$Cloud = test_or$Cloud_1.0 +
+    2*test_or$Cloud_2.0 + 3*test_or$Cloud_3.0 + 
+    4*test_or$Cloud_4.0
+test_or$month = month(ymd_hms(
+    test_or$Forecast_time, tz="Asia/Seoul"))
+
+timely_or = list(NA)
+name = rep(NA,11)
+for(i in 8:18){
+    A = test_or %>% filter(hour==i)
+    timely_or[[i-7]] = data.frame(A)
+    name[i-7] = paste0('train_or_hour',i)
+}
+names(timely_or) =name
+```
+
+
+## Dangjin_wh
+
+```{r}
+train_wh$Cloud = train_wh$Cloud_1.0 +
+    2*train_wh$Cloud_2.0 + 3*train_wh$Cloud_3.0 + 
+    4*train_wh$Cloud_4.0
+train_wh$month = month(ymd_hms(
+    train_wh$Fwhecast_time, tz="Asia/Seoul"))
+
+test_wh$Cloud = test_wh$Cloud_1.0 +
+    2*test_wh$Cloud_2.0 + 3*test_wh$Cloud_3.0 + 
+    4*test_wh$Cloud_4.0
+test_wh$month = month(ymd_hms(
+    test_wh$Fwhecast_time, tz="Asia/Seoul"))
+
+timely_wh = list(NA)
+name = rep(NA,11)
+for(i in 8:18){
+    A = test_wh %>% filter(hour==i)
+    timely_wh[[i-7]] = data.frame(A)
+    name[i-7] = paste0('train_wh_hour',i)
+}
+names(timely_wh) =name
+```
+
+
+## Dangjin_ft
+
+```{r}
+train_ft$Cloud = train_ft$Cloud_1.0 +
+    2*train_ft$Cloud_2.0 + 3*train_ft$Cloud_3.0 + 
+    4*train_ft$Cloud_4.0
+train_ft$month = month(ymd_hms(
+    train_ft$Fftecast_time, tz="Asia/Seoul"))
+
+test_ft$Cloud = test_dj_ft$Cloud_1.0 +
+    2*test_ft$Cloud_2.0 + 3*test_ft$Cloud_3.0 + 
+    4*test_ft$Cloud_4.0
+test_ft$month = month(ymd_hms(
+    test_ft$Fftecast_time, tz="Asia/Seoul"))
+
+timely_ft = list(NA)
+name = rep(NA,11)
+for(i in 8:18){
+    A = test_ft %>% filter(hour==i)
+    timely_ft[[i-7]] = data.frame(A)
+    name[i-7] = paste0('train_ft_hour',i)
+}
+names(timely_ft) =name
+```
+
+# OLS_model
+
+## Ulsan
+
+```{r}
+ols.mod_us = list(NA)
+name = rep(NA,9)
+for(i in 9:17){
+    ols.mod_us[[i-8]] = lm(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_us[[i-7]])
+    name[i-8] = paste0("ols.mod_us_",i)
+}
+names(ols.mod_us) = name
+```
+
+
+## Dangjin_or
+
+```{r}
+ols.mod_or = list(NA)
+name = rep(NA,9)
+for(i in 9:17){
+    ols.mod_or[[i-8]] = lm(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_or[[i-7]])
+    name[i-8] = paste0("ols.mod_or_",i)
+}
+names(ols.mod_or) = name
+```
+
+
+## Dangjin_wh
+
+```{r}
+ols.mod_wh = list(NA)
+name = rep(NA,9)
+for(i in 9:17){
+    ols.mod_wh[[i-8]] = lm(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_wh[[i-7]])
+    name[i-8] = paste0("ols.mod_wh_",i)
+}
+names(ols.mod_wh) = name
+```
+
+
+## Dangjin_ft
+
+```{r}
+ols.mod_ft = list(NA)
+name = rep(NA,9)
+for(i in 9:17){
+    ols.mod_ft[[i-8]] = lm(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_ft[[i-7]])
+    name[i-8] = paste0("ols.mod_ft_",i)
+}
+names(ols.mod_ft) = name
+```
+
+
+
+
+# GLS_model
+
+## Ulsan
+
+```{r}
+gls.mod1_us = list(NA)
+gls.mod2_us = list(NA)
+gls.mod3_us = list(NA)
+name1 = rep(NA,9)
+name2 = rep(NA,9)
+name3 = rep(NA,9)
+for(i in 9:17){
+    gls.mod1_us[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_us[[i-7]],
+                        correlation=corARMA(p=1),
+                        method="ML")
+    gls.mod2_us[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_us[[i-7]],
+                        correlation=corARMA(p=2),
+                        method="ML")
+    gls.mod3_us[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_us[[i-7]],
+                        correlation=corARMA(p=3),
+                        method="ML")
+    name1[i-8] = paste0("gls.mod_1_",i)
+    name2[i-8] = paste0("gls.mod_2_",i)
+    name3[i-8] = paste0("gls.mod_3_",i)
+}
+```
+
+
+## Dangjin_or
+
+```{r}
+gls.mod1_or = list(NA)
+gls.mod2_or = list(NA)
+gls.mod3_or = list(NA)
+name1 = rep(NA,9)
+name2 = rep(NA,9)
+name3 = rep(NA,9)
+for(i in 9:17){
+    gls.mod1_or[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_or[[i-7]],
+                        correlation=corARMA(p=1),
+                        method="ML")
+    gls.mod2_or[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_or[[i-7]],
+                        correlation=corARMA(p=2),
+                        method="ML")
+    gls.mod3_or[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_or[[i-7]],
+                        correlation=corARMA(p=3),
+                        method="ML")
+    name1[i-8] = paste0("gls.mod_1_",i)
+    name2[i-8] = paste0("gls.mod_2_",i)
+    name3[i-8] = paste0("gls.mod_3_",i)
+}
+```
+
+
+## Dangjin_wh
+
+```{r}
+gls.mod1_wh = list(NA)
+gls.mod2_wh = list(NA)
+gls.mod3_wh = list(NA)
+name1 = rep(NA,9)
+name2 = rep(NA,9)
+name3 = rep(NA,9)
+for(i in 9:17){
+    gls.mod1_wh[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_wh[[i-7]],
+                        correlation=corARMA(p=1),
+                        method="ML")
+    gls.mod2_wh[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_wh[[i-7]],
+                        correlation=corARMA(p=2),
+                        method="ML")
+    gls.mod3_wh[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_wh[[i-7]],
+                        correlation=corARMA(p=3),
+                        method="ML")
+    name1[i-8] = paste0("gls.mod_1_",i)
+    name2[i-8] = paste0("gls.mod_2_",i)
+    name3[i-8] = paste0("gls.mod_3_",i)
+}
+```
+
+
+## Dangjin_ft
+
+```{r}
+gls.mod1_ft = list(NA)
+gls.mod2_ft = list(NA)
+gls.mod3_ft = list(NA)
+name1 = rep(NA,9)
+name2 = rep(NA,9)
+name3 = rep(NA,9)
+for(i in 9:17){
+    gls.mod1_ft[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_ft[[i-7]],
+                        correlation=corARMA(p=1),
+                        method="ML")
+    gls.mod2_ft[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_ft[[i-7]],
+                        correlation=corARMA(p=2),
+                        method="ML")
+    gls.mod3_ft[[i-8]] = gls(energy~Temperature+Humidity+
+                            WindSpeed+factor(Cloud)+
+                            factor(month),
+                        data=timely_ft[[i-7]],
+                        correlation=corARMA(p=3),
+                        method="ML")
+    name1[i-8] = paste0("gls.mod_1_",i)
+    name2[i-8] = paste0("gls.mod_2_",i)
+    name3[i-8] = paste0("gls.mod_3_",i)
+}
+```
+
+
+# Random_Forest
+
+## Ulsan
+
+```{r}
+rf.mod_us = list(NA)
+rf.mod_us[[1]] = randomForest(energy~Temperature+Humidity+
+                            WindSpeed+Cloud+month,
+             data = timely[[1]])
+rf.mod_us[[2]] = randomForest(energy~Temperature+Humidity+
+                            WindSpeed+Cloud+month,
+             data = timely[[11]])
+names(rf.mod_us) = c("rf.mod_8","rf.mod_18")
+```
+
+
+## Dangjin_or
+
+```{r}
+rf.mod_or = list(NA)
+rf.mod_or[[1]] = randomForest(energy~Temperature+Humidity+
+                            WindSpeed+Cloud+month,
+             data = timely[[1]])
+rf.mod_or[[2]] = randomForest(energy~Temperature+Humidity+
+                            WindSpeed+Cloud+month,
+             data = timely[[11]])
+names(rf.mod_or) = c("rf.mod_8","rf.mod_18")
+```
+
+
+## Dangjin_wh
+
+```{r}
+rf.mod_wh = list(NA)
+rf.mod_wh[[1]] = randomForest(energy~Temperature+Humidity+
+                            WindSpeed+Cloud+month,
+             data = timely[[1]])
+rf.mod_wh[[2]] = randomForest(energy~Temperature+Humidity+
+                            WindSpeed+Cloud+month,
+             data = timely[[11]])
+names(rf.mod_wh) = c("rf.mod_8","rf.mod_18")
+```
+
+
+## Dangjin_ft
+
+```{r}
+rf.mod_ft = list(NA)
+rf.mod_ft[[1]] = randomForest(energy~Temperature+Humidity+
+                            WindSpeed+Cloud+month,
+             data = timely[[1]])
+rf.mod_ft[[2]] = randomForest(energy~Temperature+Humidity+
+                            WindSpeed+Cloud+month,
+             data = timely[[11]])
+names(rf.mod_ft) = c("rf.mod_8","rf.mod_18")
+```
+
+
+
+# Submission File Generate Function
+
+```{r}
+submssion = function(test_data,model1,model2){
+    # empty file generate
+    submission = matrix(NA,nrow=1,ncol=2)
+    
+    # no-predict time
+    remained = test_data %>% 
+        filter(!(hour %in% 8:18)) %>% 
+        dplyr::select(Forecast_time)
+    remained = cbind(c(remained),rep(0,length(c(remained))))
+    
+    # model1(time 9 ~ 17)
+    for(i in 9:17){
+        test = test_data %>% filter(hour==i)
+        a = predict(model1[[i-8]],newdata=data.frame(test))
+        a = cbind(test$Forecast_time,a)
+        submission = rbind(submission,a)
+    }
+    
+    # model2(time 8, 18)
+    test1 = test_data %>% filter(hour==8)
+    a1 = predict(model2[[1]],newdata=data.frame(test1))
+    a1 = cbind(test1$Forecast_time,a1)
+    
+    test2 = test_data %>% filter(hour==18)
+    a1 = predict(model2[[2]],newdata=data.frame(test2))
+    a2 = cbind(test2$Forecast_time,a2)
+    
+    submission = rbind(submission,a1,a2)
+    
+    # submission file generate
+    submission = submission[-1,]
+    submission = rbind(submission, remained)
+    colnames(submission) = c("time","energy_pred")
+    
+    # print
+    print(arrange(sumission,time))
+}
+```
+
+
+# submission file
+
+```{r}
+submission_us = submission(test_us,model1_us,model2_us)
+submission_or = submission(test_us,model1_or,model2_or)
+submission_wh = submission(test_us,model1_wh,model2_wh)
+submission_ft = submission(test_us,model1_ft,model2_ft)
+
+submission = submission_us + submission_or + 
+    submission_wh + submission_ft
+write.csv(submission,
+          "C:/Users/강경준/Desktop/submission.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
