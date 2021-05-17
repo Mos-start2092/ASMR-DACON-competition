@@ -17,7 +17,8 @@ library(randomForest)
 # Data Reading
 
 ```{r}
-setwd("C:/Users/강경준/Documents")
+setwd("G:/공유 드라이브/ASMR_data/data")
+# 여기에 데이터 있으니 바로 안 읽히면 데이터 따로 옮겨서 읽어보세유
 train_us = read.csv("train_month_us.csv")
 train_or = read.csv("train_month_dj_or.csv")
 train_wh = read.csv("train_month_dj_wh.csv")
@@ -47,7 +48,7 @@ test_us$month = month(ymd_hms(
 timely_us = list(NA)
 name = rep(NA,11)
 for(i in 8:18){
-    A = test_us %>% filter(hour==i)
+    A = train_us %>% filter(hour==i)
     timely_us[[i-7]] = data.frame(A)
     name[i-7] = paste0('train_us_hour',i)
 }
@@ -64,16 +65,16 @@ train_or$Cloud = train_or$Cloud_1.0 +
 train_or$month = month(ymd_hms(
     train_or$Forecast_time, tz="Asia/Seoul"))
 
-test_or$Cloud = test_or$Cloud_1.0 +
-    2*test_or$Cloud_2.0 + 3*test_or$Cloud_3.0 + 
-    4*test_or$Cloud_4.0
-test_or$month = month(ymd_hms(
-    test_or$Forecast_time, tz="Asia/Seoul"))
+test_dj$Cloud = test_dj$Cloud_1.0 +
+    2*test_dj$Cloud_2.0 + 3*test_dj$Cloud_3.0 + 
+    4*test_dj$Cloud_4.0
+test_dj$month = month(ymd_hms(
+    test_dj$Forecast_time, tz="Asia/Seoul"))
 
 timely_or = list(NA)
 name = rep(NA,11)
 for(i in 8:18){
-    A = test_or %>% filter(hour==i)
+    A = train_or %>% filter(hour==i)
     timely_or[[i-7]] = data.frame(A)
     name[i-7] = paste0('train_or_hour',i)
 }
@@ -88,18 +89,13 @@ train_wh$Cloud = train_wh$Cloud_1.0 +
     2*train_wh$Cloud_2.0 + 3*train_wh$Cloud_3.0 + 
     4*train_wh$Cloud_4.0
 train_wh$month = month(ymd_hms(
-    train_wh$Fwhecast_time, tz="Asia/Seoul"))
+    train_wh$Forecast_time, tz="Asia/Seoul"))
 
-test_wh$Cloud = test_wh$Cloud_1.0 +
-    2*test_wh$Cloud_2.0 + 3*test_wh$Cloud_3.0 + 
-    4*test_wh$Cloud_4.0
-test_wh$month = month(ymd_hms(
-    test_wh$Fwhecast_time, tz="Asia/Seoul"))
 
 timely_wh = list(NA)
 name = rep(NA,11)
 for(i in 8:18){
-    A = test_wh %>% filter(hour==i)
+    A = train_wh %>% filter(hour==i)
     timely_wh[[i-7]] = data.frame(A)
     name[i-7] = paste0('train_wh_hour',i)
 }
@@ -114,18 +110,12 @@ train_ft$Cloud = train_ft$Cloud_1.0 +
     2*train_ft$Cloud_2.0 + 3*train_ft$Cloud_3.0 + 
     4*train_ft$Cloud_4.0
 train_ft$month = month(ymd_hms(
-    train_ft$Fftecast_time, tz="Asia/Seoul"))
-
-test_ft$Cloud = test_dj_ft$Cloud_1.0 +
-    2*test_ft$Cloud_2.0 + 3*test_ft$Cloud_3.0 + 
-    4*test_ft$Cloud_4.0
-test_ft$month = month(ymd_hms(
-    test_ft$Fftecast_time, tz="Asia/Seoul"))
+    train_ft$Forecast_time, tz="Asia/Seoul"))
 
 timely_ft = list(NA)
 name = rep(NA,11)
 for(i in 8:18){
-    A = test_ft %>% filter(hour==i)
+    A = train_ft %>% filter(hour==i)
     timely_ft[[i-7]] = data.frame(A)
     name[i-7] = paste0('train_ft_hour',i)
 }
@@ -201,6 +191,8 @@ names(ols.mod_ft) = name
 
 
 # GLS_model
+
+ 40분가량 돌아가니 충분히 여유를 갖고 돌려보세유
 
 ## Ulsan
 
