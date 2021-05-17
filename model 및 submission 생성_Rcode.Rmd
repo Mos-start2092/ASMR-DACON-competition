@@ -130,7 +130,7 @@ names(timely_ft) =name
 ols.mod_us = list(NA)
 name = rep(NA,9)
 for(i in 9:17){
-    ols.mod_us[[i-8]] = lm(energy~Temperature+Humidity+
+    ols.mod_us[[i-8]] = lm(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_us[[i-7]])
@@ -146,7 +146,7 @@ names(ols.mod_us) = name
 ols.mod_or = list(NA)
 name = rep(NA,9)
 for(i in 9:17){
-    ols.mod_or[[i-8]] = lm(energy~Temperature+Humidity+
+    ols.mod_or[[i-8]] = lm(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_or[[i-7]])
@@ -162,7 +162,7 @@ names(ols.mod_or) = name
 ols.mod_wh = list(NA)
 name = rep(NA,9)
 for(i in 9:17){
-    ols.mod_wh[[i-8]] = lm(energy~Temperature+Humidity+
+    ols.mod_wh[[i-8]] = lm(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_wh[[i-7]])
@@ -178,7 +178,7 @@ names(ols.mod_wh) = name
 ols.mod_ft = list(NA)
 name = rep(NA,9)
 for(i in 9:17){
-    ols.mod_ft[[i-8]] = lm(energy~Temperature+Humidity+
+    ols.mod_ft[[i-8]] = lm(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_ft[[i-7]])
@@ -204,19 +204,19 @@ name1 = rep(NA,9)
 name2 = rep(NA,9)
 name3 = rep(NA,9)
 for(i in 9:17){
-    gls.mod1_us[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod1_us[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_us[[i-7]],
                         correlation=corARMA(p=1),
                         method="ML")
-    gls.mod2_us[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod2_us[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_us[[i-7]],
                         correlation=corARMA(p=2),
                         method="ML")
-    gls.mod3_us[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod3_us[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_us[[i-7]],
@@ -239,19 +239,19 @@ name1 = rep(NA,9)
 name2 = rep(NA,9)
 name3 = rep(NA,9)
 for(i in 9:17){
-    gls.mod1_or[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod1_or[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_or[[i-7]],
                         correlation=corARMA(p=1),
                         method="ML")
-    gls.mod2_or[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod2_or[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_or[[i-7]],
                         correlation=corARMA(p=2),
                         method="ML")
-    gls.mod3_or[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod3_or[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_or[[i-7]],
@@ -274,19 +274,19 @@ name1 = rep(NA,9)
 name2 = rep(NA,9)
 name3 = rep(NA,9)
 for(i in 9:17){
-    gls.mod1_wh[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod1_wh[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_wh[[i-7]],
                         correlation=corARMA(p=1),
                         method="ML")
-    gls.mod2_wh[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod2_wh[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_wh[[i-7]],
                         correlation=corARMA(p=2),
                         method="ML")
-    gls.mod3_wh[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod3_wh[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_wh[[i-7]],
@@ -309,19 +309,19 @@ name1 = rep(NA,9)
 name2 = rep(NA,9)
 name3 = rep(NA,9)
 for(i in 9:17){
-    gls.mod1_ft[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod1_ft[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_ft[[i-7]],
                         correlation=corARMA(p=1),
                         method="ML")
-    gls.mod2_ft[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod2_ft[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_ft[[i-7]],
                         correlation=corARMA(p=2),
                         method="ML")
-    gls.mod3_ft[[i-8]] = gls(energy~Temperature+Humidity+
+    gls.mod3_ft[[i-8]] = gls(energy~Temp_F+Humidity+
                             WindSpeed+factor(Cloud)+
                             factor(month),
                         data=timely_ft[[i-7]],
@@ -340,10 +340,10 @@ for(i in 9:17){
 
 ```{r}
 rf.mod_us = list(NA)
-rf.mod_us[[1]] = randomForest(energy~Temperature+Humidity+
+rf.mod_us[[1]] = randomForest(energy~Temp_F+Humidity+
                             WindSpeed+Cloud+month,
              data = timely[[1]])
-rf.mod_us[[2]] = randomForest(energy~Temperature+Humidity+
+rf.mod_us[[2]] = randomForest(energy~Temp_F+Humidity+
                             WindSpeed+Cloud+month,
              data = timely[[11]])
 names(rf.mod_us) = c("rf.mod_8","rf.mod_18")
@@ -354,10 +354,10 @@ names(rf.mod_us) = c("rf.mod_8","rf.mod_18")
 
 ```{r}
 rf.mod_or = list(NA)
-rf.mod_or[[1]] = randomForest(energy~Temperature+Humidity+
+rf.mod_or[[1]] = randomForest(energy~Temp_F+Humidity+
                             WindSpeed+Cloud+month,
              data = timely[[1]])
-rf.mod_or[[2]] = randomForest(energy~Temperature+Humidity+
+rf.mod_or[[2]] = randomForest(energy~Temp_F+Humidity+
                             WindSpeed+Cloud+month,
              data = timely[[11]])
 names(rf.mod_or) = c("rf.mod_8","rf.mod_18")
@@ -368,10 +368,10 @@ names(rf.mod_or) = c("rf.mod_8","rf.mod_18")
 
 ```{r}
 rf.mod_wh = list(NA)
-rf.mod_wh[[1]] = randomForest(energy~Temperature+Humidity+
+rf.mod_wh[[1]] = randomForest(energy~Temp_F+Humidity+
                             WindSpeed+Cloud+month,
              data = timely[[1]])
-rf.mod_wh[[2]] = randomForest(energy~Temperature+Humidity+
+rf.mod_wh[[2]] = randomForest(energy~Temp_F+Humidity+
                             WindSpeed+Cloud+month,
              data = timely[[11]])
 names(rf.mod_wh) = c("rf.mod_8","rf.mod_18")
@@ -382,10 +382,10 @@ names(rf.mod_wh) = c("rf.mod_8","rf.mod_18")
 
 ```{r}
 rf.mod_ft = list(NA)
-rf.mod_ft[[1]] = randomForest(energy~Temperature+Humidity+
+rf.mod_ft[[1]] = randomForest(energy~Temp_F+Humidity+
                             WindSpeed+Cloud+month,
              data = timely[[1]])
-rf.mod_ft[[2]] = randomForest(energy~Temperature+Humidity+
+rf.mod_ft[[2]] = randomForest(energy~Temp_F+Humidity+
                             WindSpeed+Cloud+month,
              data = timely[[11]])
 names(rf.mod_ft) = c("rf.mod_8","rf.mod_18")
