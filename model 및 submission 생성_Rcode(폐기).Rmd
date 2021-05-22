@@ -293,7 +293,7 @@ for(i in 9:17){
                         correlation=corARMA(p=3),
                         method="ML")
     name1[i-8] = paste0("gls.mod_1_",i)
-    name2[i-8] = paste0("gls.mod_2_",i)
+    name2[i-8] = paste0("gls.mod_2_",i)          ㄴㄴ
     name3[i-8] = paste0("gls.mod_3_",i)
 }
 ```

@@ -1,0 +1,433 @@
+---
+title: "modeling & submission"
+author: "John_James"
+date: '2021 5 22 '
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(lubridate)
+library(randomForest)
+library(forecast)
+```
+
+
+# Data Reading
+
+```{r}
+setwd("G:/내 드라이브/경준/공모전/동서발전/최종 데이터")
+train_us = read.csv("train_month_us_new.csv")
+train_or = read.csv("train_month_dj_or_new.csv")
+train_wh = read.csv("train_month_dj_wh_new.csv")
+train_ft = read.csv("train_month_dj_ft_new.csv")
+test_us = read.csv("test_us_with_energy0.csv")
+test_dj = read.csv("test_dj_with_energy0.csv")
+samp_sub = read.csv("sample_submission.csv")
+
+idx = which(test_us$Cloud_1.0 == 0 & test_us$Cloud_2.0 == 0 &
+          test_us$Cloud_3.0 == 0)
+test_us$Cloud_4.0 = 0
+test_us$Cloud_4.0[idx] = 1
+test_us = test_us[-1,]
+
+idx = which(test_dj$Cloud_1.0 == 0 & test_dj$Cloud_2.0 == 0 &
+                test_dj$Cloud_3.0 == 0)
+test_dj$Cloud_4.0 = 0
+test_dj$Cloud_4.0[idx] = 1
+test_dj = test_dj[-1,]
+```
+
+- test Cloud 변수 하나로 병합
+- test 첫 행(2021-02-01 00:00) 제거
+
+
+# hour 별 정리
+
+- train Cloud combine
+- data 시간별로(8~18) timely_"place"(list)에 저장
+
+## Ulsan
+
+
+```{r}
+
+train_us$Cloud = train_us$Cloud_1.0 +
+    2*train_us$Cloud_2.0 + 3*train_us$Cloud_3.0 + 
+    4*train_us$Cloud_4.0
+train_us$month = month(ymd_hms(
+    train_us$Forecast_time, tz="Asia/Seoul"))
+
+test_us$Cloud = test_us$Cloud_1.0 +
+    2*test_us$Cloud_2.0 + 3*test_us$Cloud_3.0 + 
+    4*test_us$Cloud_4.0
+test_us$month = month(ymd_h(
+    test_us$day_hour_int, tz="Asia/Seoul"))
+
+timely_us = list(NA)
+name = rep(NA,11)
+for(i in 8:18){
+    A = train_us %>% filter(hour==i)
+    timely_us[[i-7]] = data.frame(A)
+    name[i-7] = paste0('train_us_hour',i)
+}
+names(timely_us) =name
+```
+
+
+## Dangjin_original
+
+```{r}
+train_or$Cloud = train_or$Cloud_1.0 +
+    2*train_or$Cloud_2.0 + 3*train_or$Cloud_3.0 + 
+    4*train_or$Cloud_4.0
+train_or$month = month(ymd_hms(
+    train_or$Forecast_time, tz="Asia/Seoul"))
+
+test_dj$Cloud = test_dj$Cloud_1.0 +
+    2*test_dj$Cloud_2.0 + 3*test_dj$Cloud_3.0 + 
+    4*test_dj$Cloud_4.0
+test_dj$month = month(ymd_h(
+    test_dj$day_hour_int, tz="Asia/Seoul"))
+
+timely_or = list(NA)
+name = rep(NA,11)
+for(i in 8:18){
+    A = train_or %>% filter(hour==i)
+    timely_or[[i-7]] = data.frame(A)
+    name[i-7] = paste0('train_or_hour',i)
+}
+names(timely_or) =name
+```
+
+
+## Dangjin_warehouse
+
+```{r}
+train_wh$Cloud = train_wh$Cloud_1.0 +
+    2*train_wh$Cloud_2.0 + 3*train_wh$Cloud_3.0 + 
+    4*train_wh$Cloud_4.0
+train_wh$month = month(ymd_hms(
+    train_wh$Forecast_time, tz="Asia/Seoul"))
+
+timely_wh = list(NA)
+name = rep(NA,11)
+for(i in 8:18){
+    A = train_wh %>% filter(hour==i)
+    timely_wh[[i-7]] = data.frame(A)
+    name[i-7] = paste0('train_wh_hour',i)
+}
+names(timely_wh) =name
+```
+
+
+## Dangjin_floating
+
+```{r}
+train_ft$Cloud = train_ft$Cloud_1.0 +
+    2*train_ft$Cloud_2.0 + 3*train_ft$Cloud_3.0 + 
+    4*train_ft$Cloud_4.0
+train_ft$month = month(ymd_hms(
+    train_ft$Forecast_time, tz="Asia/Seoul"))
+
+
+timely_ft = list(NA)
+name = rep(NA,11)
+for(i in 8:18){
+    A = train_ft %>% filter(hour==i)
+    timely_ft[[i-7]] = data.frame(A)
+    name[i-7] = paste0('train_ft_hour',i)
+}
+names(timely_ft) =name
+```
+
+
+
+
+# Modeling
+
+- 9~17시 data linear model fitting, ols.mod_"place"(list)에 저장
+- 8, 18시 data random forest, rf.mod_"place"(list)에 저장
+
+## Ulsan
+
+```{r}
+#lm
+ols.mod_us = list(NA)
+name = rep(NA,9)
+for(i in 9:17){
+    ols.mod_us[[i-8]] = lm(energy~Temperature+Humidity+
+                               WindSpeed+factor(Cloud)+
+                               factor(month),
+                           data=timely_us[[i-7]])
+    name[i-8] = paste0("ols.mod_us_",i)
+}
+names(ols.mod_us) = name
+
+#rf
+rf.mod_us = list(NA)
+rf.mod_us[[1]] = randomForest(energy~Temperature+Humidity+
+                                  WindSpeed+Cloud+month,
+                              data = timely_us[[1]])
+rf.mod_us[[2]] = randomForest(energy~Temperature+Humidity+
+                                  WindSpeed+Cloud+month,
+                              data = timely_us[[11]])
+names(rf.mod_us) = c("rf.mod_8","rf.mod_18")
+```
+
+
+## Dangjin_original
+
+```{r}
+#lm
+ols.mod_or = list(NA)
+name = rep(NA,9)
+for(i in 9:17){
+    ols.mod_or[[i-8]] = lm(energy~Temperature+Humidity+
+                               WindSpeed+factor(Cloud)+
+                               factor(month),
+                           data=timely_or[[i-7]])
+    name[i-8] = paste0("ols.mod_or_",i)
+}
+names(ols.mod_or) = name
+
+#rf
+rf.mod_or = list(NA)
+rf.mod_or[[1]] = randomForest(energy~Temperature+Humidity+
+                                  WindSpeed+Cloud+month,
+                              data = timely_or[[1]])
+rf.mod_or[[2]] = randomForest(energy~Temperature+Humidity+
+                                  WindSpeed+Cloud+month,
+                              data = timely_or[[11]])
+names(rf.mod_or) = c("rf.mod_8","rf.mod_18")
+```
+
+
+## Dangjin_warehouse
+
+```{r}
+#lm
+ols.mod_wh = list(NA)
+name = rep(NA,9)
+for(i in 9:17){
+    ols.mod_wh[[i-8]] = lm(energy~Temperature+Humidity+
+                               WindSpeed+factor(Cloud)+
+                               factor(month),
+                           data=timely_wh[[i-7]])
+    name[i-8] = paste0("ols.mod_wh_",i)
+}
+names(ols.mod_wh) = name
+
+#rf
+rf.mod_wh = list(NA)
+rf.mod_wh[[1]] = randomForest(energy~Temperature+Humidity+
+                                  WindSpeed+Cloud+month,
+                              data = timely_wh[[1]])
+rf.mod_wh[[2]] = randomForest(energy~Temperature+Humidity+
+                                  WindSpeed+Cloud+month,
+                              data = timely_wh[[11]])
+names(rf.mod_wh) = c("rf.mod_8","rf.mod_18")
+```
+
+
+## Dangjin_floating
+
+```{r}
+#lm
+ols.mod_ft = list(NA)
+name = rep(NA,9)
+for(i in 9:17){
+    ols.mod_ft[[i-8]] = lm(energy~Temperature+Humidity+
+                               WindSpeed+factor(Cloud)+
+                               factor(month),
+                           data=timely_ft[[i-7]])
+    name[i-8] = paste0("ols.mod_ft_",i)
+}
+names(ols.mod_ft) = name
+
+#rf
+rf.mod_ft = list(NA)
+rf.mod_ft[[1]] = randomForest(energy~Temperature+Humidity+
+                                  WindSpeed+Cloud+month,
+                              data = timely_ft[[1]])
+rf.mod_ft[[2]] = randomForest(energy~Temperature+Humidity+
+                                  WindSpeed+Cloud+month,
+                              data = timely_ft[[11]])
+names(rf.mod_ft) = c("rf.mod_8","rf.mod_18")
+```
+
+
+
+
+# Influence
+
+- Influence data 의심 obs 전부 제거
+
+## Ulsan
+
+```{r}
+timely_us_noinf = list(NA)
+for(i in 1:length(ols.mod_us)){
+    idx = NULL
+    inf.mea = influence.measures(ols.mod_us[[i]])$is.inf
+    num = which(apply(inf.mea,2,sum)!=0)
+    for(j in 1:length(num)){
+        a = which(inf.mea[,num[j]]==1)
+        idx = unique(c(idx,a))
+    }
+    timely_us_noinf[[i+1]] = timely_us[[i+1]][-idx,]
+    ols.mod_us[[i]] = lm(energy~Temperature+Humidity+
+                             WindSpeed+factor(Cloud)+
+                             factor(month),
+                         data = timely_us_noinf[[i+1]])
+}
+```
+
+
+## Dangjin_origianl
+
+```{r}
+timely_or_noinf = list(NA)
+for(i in 1:length(ols.mod_or)){
+    idx = NULL
+    inf.mea = influence.measures(ols.mod_or[[i]])$is.inf
+    num = which(apply(inf.mea,2,sum)!=0)
+    for(j in 1:length(num)){
+        a = which(inf.mea[,num[j]]==1)
+        idx = unique(c(idx,a))
+    }
+    timely_or_noinf[[i+1]] = timely_or[[i+1]][-idx,]
+    ols.mod_or[[i]] = lm(energy~Temperature+Humidity+
+                             WindSpeed+factor(Cloud)+
+                             factor(month),
+                         data = timely_or_noinf[[i+1]])
+}
+```
+
+
+## Dangjin_warehouse
+
+```{r}
+timely_wh_noinf = list(NA)
+for(i in 1:length(ols.mod_wh)){
+    idx = NULL
+    inf.mea = influence.measures(ols.mod_wh[[i]])$is.inf
+    num = which(apply(inf.mea,2,sum)!=0)
+    for(j in 1:length(num)){
+        a = which(inf.mea[,num[j]]==1)
+        idx = unique(c(idx,a))
+    }
+    timely_wh_noinf[[i+1]] = timely_wh[[i+1]][-idx,]
+    ols.mod_wh[[i]] = lm(energy~Temperature+Humidity+
+                             WindSpeed+factor(Cloud)+
+                             factor(month),
+                         data = timely_wh_noinf[[i+1]])
+}
+
+```
+
+
+## Dangjin_floating
+
+```{r}
+timely_ft_noinf = list(NA)
+for(i in 1:length(ols.mod_ft)){
+    idx = NULL
+    inf.mea = influence.measures(ols.mod_ft[[i]])$is.inf
+    num = which(apply(inf.mea,2,sum)!=0)
+    for(j in 1:length(num)){
+        a = which(inf.mea[,num[j]]==1)
+        idx = unique(c(idx,a))
+    }
+    timely_ft_noinf[[i+1]] = timely_ft[[i+1]][-idx,]
+    ols.mod_ft[[i]] = lm(energy~Temperature+Humidity+
+                             WindSpeed+factor(Cloud)+
+                             factor(month),
+                         data = timely_ft_noinf[[i+1]])
+}
+```
+
+
+
+
+# Generate Submission File
+
+## Generate Function
+
+```{r}
+submission = function(test_data,model1,model2){
+    # empty file generate
+    submission = matrix(NA,nrow=1,ncol=2)
+    
+    # no-predict time
+    remained = test_data %>% 
+        filter(!(hour %in% 8:18)) %>% 
+        dplyr::select(day_hour_int) %>% 
+        as.matrix
+    remained = cbind(remained,
+                     matrix(0,nrow = length(c(remained))))
+    
+    # model1(time 9 ~ 17)
+    for(i in 9:17){
+        test = test_data %>% filter(hour==i)
+        a = predict(model1[[i-8]],newdata=data.frame(test))
+        a = cbind(test$day_hour_int,a)
+        submission = rbind(submission,a)
+    }
+    
+    # model2(time 8, 18)
+    test1 = test_data %>% filter(hour==8)
+    a1 = predict(model2[[1]],newdata=data.frame(test1))
+    a1 = cbind(test1$day_hour_int,a1)
+    
+    test2 = test_data %>% filter(hour==18)
+    a2 = predict(model2[[2]],newdata=data.frame(test2))
+    a2 = cbind(test2$day_hour_int,a2)
+    
+    submission = rbind(submission,a1,a2)
+    
+    # submission file generate
+    submission = submission[-1,]
+    submission = rbind(submission, remained)
+    colnames(submission) = c("time","energy_pred")
+    
+    # print
+    return(arrange(data.frame(submission),time))
+}
+```
+
+
+## Combine File & Generate
+
+```{r}
+submission_us = submission(test_us,ols.mod_us,rf.mod_us)
+submission_or = submission(test_dj,ols.mod_or,rf.mod_or)
+submission_wh = submission(test_dj,ols.mod_wh,rf.mod_wh)
+submission_ft = submission(test_dj,ols.mod_ft,rf.mod_ft)
+
+
+idx = 1:(28*24-1)
+t1 = samp_sub$time[idx]
+t2 = samp_sub$time[-idx]
+
+
+submission = cbind(submission_ft[,2],
+                   submission_wh[,2],submission_or[,2],
+                   submission_us[,2])
+
+submission = cbind(t1,submission)
+
+
+sub2 = matrix(0,nrow=30*24+1,ncol=5)
+sub2[,1] = t2
+
+submission = rbind(submission,sub2)
+colnames(submission) = c("time","dangjin_floating",
+                         "dangjin_warehouse","dangjin",
+                         "ulsan")
+
+write.csv(submission,
+          "C:/Users/강경준/Desktop/submission.csv",
+          row.names = F)
+```
